@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "../../lib/api";
 
-export default function ProductsPage() {
+
+function ProductsContent() {
     const searchParams = useSearchParams();
 
     const initialGender = searchParams.get("gender") || "all";
@@ -15,6 +16,7 @@ export default function ProductsPage() {
     const [sort, setSort] = useState("newest");
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
+
 
     const loadProducts = async () => {
         try {
@@ -583,5 +585,26 @@ export default function ProductsPage() {
             </section>
 
         </main>
+    );
+}
+
+
+/*
+ * The page itself does NOT call useSearchParams().
+ * This allows Next.js to prerender the route safely.
+ */
+export default function ProductsPage() {
+    return (
+        <Suspense
+            fallback={
+                <main className="min-h-screen bg-white text-black flex items-center justify-center">
+                    <div className="text-gray-400">
+                        Loading collection...
+                    </div>
+                </main>
+            }
+        >
+            <ProductsContent />
+        </Suspense>
     );
 }
