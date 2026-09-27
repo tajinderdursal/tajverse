@@ -1,20 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { apiFetch } from "../../lib/api";
 
-export default function OrderSuccessPage() {
+
+function OrderSuccessContent() {
     const searchParams = useSearchParams();
-    const router = useRouter();
 
     const orderId = searchParams.get("id");
 
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+
+    const fetchOrder = async () => {
+        try {
+            const data = await apiFetch(`/orders/${orderId}`);
+
+            setOrder(data.order);
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     useEffect(() => {
         if (!orderId) {
@@ -26,16 +40,6 @@ export default function OrderSuccessPage() {
         fetchOrder();
     }, [orderId]);
 
-    const fetchOrder = async () => {
-        try {
-            const data = await apiFetch(`/orders/${orderId}`);
-            setOrder(data.order);
-        } catch (error) {
-            setError(error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     if (loading) {
         return (
@@ -47,10 +51,12 @@ export default function OrderSuccessPage() {
         );
     }
 
+
     if (error || !order) {
         return (
             <main className="min-h-screen bg-white flex items-center justify-center px-6">
                 <div className="text-center">
+
                     <h1 className="text-4xl font-light">
                         Order Not Found
                     </h1>
@@ -65,46 +71,70 @@ export default function OrderSuccessPage() {
                     >
                         Back to Home
                     </Link>
+
                 </div>
             </main>
         );
     }
 
+
     return (
         <main className="min-h-screen bg-white text-black">
-            {/* NAVBAR */}
+
+            {/* ================= NAVBAR ================= */}
+
             <nav className="border-b border-gray-200 px-6 py-5">
+
                 <div className="max-w-7xl mx-auto">
+
                     <Link
                         href="/"
                         className="text-2xl font-semibold tracking-[0.25em]"
                     >
                         TAJVERSE
                     </Link>
+
                 </div>
+
             </nav>
 
-            {/* SUCCESS */}
+
+            {/* ================= SUCCESS ================= */}
+
             <section className="max-w-4xl mx-auto px-6 py-20 text-center">
+
                 <div className="mx-auto w-20 h-20 rounded-full border border-black flex items-center justify-center">
-                    <span className="text-3xl">✓</span>
+
+                    <span className="text-3xl">
+                        ✓
+                    </span>
+
                 </div>
+
 
                 <p className="text-xs tracking-[0.3em] uppercase text-gray-500 mt-10">
                     Thank You
                 </p>
 
+
                 <h1 className="text-5xl md:text-6xl font-light mt-4">
                     Order Confirmed
                 </h1>
+
 
                 <p className="text-gray-500 mt-5">
                     Your order has been placed successfully.
                 </p>
 
-                {/* ORDER INFO */}
+
+                {/* ================= ORDER INFO ================= */}
+
                 <div className="mt-14 border border-gray-200 text-left">
+
+                    {/* ORDER ID */}
+
                     <div className="p-7 border-b border-gray-200">
+
                         <p className="text-xs tracking-widest uppercase text-gray-500">
                             Order ID
                         </p>
@@ -112,22 +142,37 @@ export default function OrderSuccessPage() {
                         <p className="mt-2 font-medium break-all">
                             {order._id}
                         </p>
+
                     </div>
 
+
+                    {/* PAYMENT / STATUS / TOTAL */}
+
                     <div className="grid md:grid-cols-3">
+
+                        {/* PAYMENT */}
+
                         <div className="p-7 border-b md:border-b-0 md:border-r border-gray-200">
+
                             <p className="text-xs tracking-widest uppercase text-gray-500">
                                 Payment
                             </p>
 
                             <p className="mt-2 capitalize">
+
                                 {order.paymentMethod === "cod"
                                     ? "Cash on Delivery"
                                     : "Razorpay"}
+
                             </p>
+
                         </div>
 
+
+                        {/* STATUS */}
+
                         <div className="p-7 border-b md:border-b-0 md:border-r border-gray-200">
+
                             <p className="text-xs tracking-widest uppercase text-gray-500">
                                 Status
                             </p>
@@ -135,9 +180,14 @@ export default function OrderSuccessPage() {
                             <p className="mt-2 capitalize">
                                 {order.orderStatus}
                             </p>
+
                         </div>
 
+
+                        {/* TOTAL */}
+
                         <div className="p-7">
+
                             <p className="text-xs tracking-widest uppercase text-gray-500">
                                 Total
                             </p>
@@ -146,25 +196,38 @@ export default function OrderSuccessPage() {
                                 ₹
                                 {order.totalAmount.toLocaleString("en-IN")}
                             </p>
+
                         </div>
+
                     </div>
+
                 </div>
 
-                {/* ITEMS */}
+
+                {/* ================= ITEMS ================= */}
+
                 <div className="mt-10 border border-gray-200 text-left">
+
                     <div className="p-7 border-b border-gray-200">
+
                         <h2 className="text-xl font-medium">
                             Your Looks
                         </h2>
+
                     </div>
 
+
                     <div className="divide-y divide-gray-200">
+
                         {order.items.map((item, index) => (
+
                             <div
                                 key={index}
                                 className="p-7 flex justify-between gap-6"
                             >
+
                                 <div>
+
                                     <p className="font-medium">
                                         {item.name}
                                     </p>
@@ -173,21 +236,32 @@ export default function OrderSuccessPage() {
                                         Size: {item.size} ×{" "}
                                         {item.quantity}
                                     </p>
+
                                 </div>
 
+
                                 <p className="font-medium">
+
                                     ₹
                                     {(
                                         item.price * item.quantity
                                     ).toLocaleString("en-IN")}
+
                                 </p>
+
                             </div>
+
                         ))}
+
                     </div>
+
                 </div>
 
-                {/* BUTTONS */}
+
+                {/* ================= BUTTONS ================= */}
+
                 <div className="flex flex-col sm:flex-row justify-center gap-4 mt-12">
+
                     <Link
                         href="/my-orders"
                         className="bg-black text-white px-8 py-4 text-sm tracking-widest uppercase hover:bg-gray-800 transition"
@@ -195,14 +269,46 @@ export default function OrderSuccessPage() {
                         View My Orders
                     </Link>
 
+
                     <Link
                         href="/products"
                         className="border border-black px-8 py-4 text-sm tracking-widest uppercase hover:bg-black hover:text-white transition"
                     >
                         Continue Shopping
                     </Link>
+
                 </div>
+
             </section>
+
         </main>
+    );
+}
+
+
+/*
+ * IMPORTANT:
+ *
+ * useSearchParams() is inside OrderSuccessContent.
+ * The content component is wrapped with Suspense below.
+ *
+ * This prevents the Next.js production build error:
+ * "useSearchParams() should be wrapped in a suspense boundary"
+ */
+
+
+export default function OrderSuccessPage() {
+    return (
+        <Suspense
+            fallback={
+                <main className="min-h-screen bg-white flex items-center justify-center">
+                    <p className="text-xs tracking-[0.3em] uppercase">
+                        Loading Order...
+                    </p>
+                </main>
+            }
+        >
+            <OrderSuccessContent />
+        </Suspense>
     );
 }
